@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { Character } = require('../db')
+const { Character, Movie } = require('../db')
 
 const router = Router()
 
@@ -9,6 +9,26 @@ router.get('/', async(req, res) => {
     })
 
     return res.send(characters)
+})
+
+router.get('/details/:id', async(req, res) => {
+    const { id } = req.params
+
+    try {
+        let character = await Character.findByPk(id, {
+            include: {
+                model: Movie,
+                attributes: ['title', 'image', 'rating', 'date_of_creation'],
+                through: {
+                    attributes: []
+                }
+            }
+        })
+
+        return res.send(character)
+    } catch (error) {
+        return res.send(error)
+    }
 })
 
 router.post('/create', async (req, res) => {

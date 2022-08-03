@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { Movie } = require('../db')
+const { Character, Movie } = require('../db')
 const router = Router()
 
 router.get('/', async(req, res) => {
@@ -8,6 +8,27 @@ router.get('/', async(req, res) => {
     })
 
     return res.send(movies)
+})
+
+router.get('/details/:id', async(req, res) => {
+    const { id } = req.params
+
+    try {
+        let movie = await Movie.findByPk(id, {
+            include: {
+                model: Character,
+                attributes: ['name', 'image', 'age', 'weight', 'history'],
+                through: {
+                    attributes: []
+                }
+            }
+        })
+
+        return res.send(movie)
+
+    } catch (error) {
+        return res.send(error)
+    }
 })
 
 router.post('/create', async (req, res) => {
@@ -65,7 +86,7 @@ router.put('/edit/:id', async(req, res) => {
         if(rating)condition.rating = rating
 
         await movie.update(condition)
-        return res.send('Personaje actualizado')
+        return res.send('Pelicula actualizado')
     } catch (error) {
         return res.send(error)
     }
