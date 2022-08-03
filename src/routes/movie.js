@@ -74,16 +74,47 @@ router.delete('/delete/:id', async(req, res) => {
 router.put('/edit/:id', async(req, res) => {
     let { id } = req.params
     let condition = {}
-    let { title, image, date_of_creation, rating } = req.body
+    let { title, image, date_of_creation, rating, characters } = req.body
 
     try {
-        let movie = await Movie.findByPk(id)
+        let movie = await Movie.findByPk(id, {
+            include:{
+                model: Character,
+                attributes: ['name'],
+                through: {
+                    attributes: []
+                }
+            }
+        })
         if(!movie)return res.send('La pelicula no existe')
 
         if(title)condition.title = title
         if(image)condition.image = image
         if(date_of_creation)condition.date_of_creation = date_of_creation
         if(rating)condition.rating = rating
+        if(characters){
+            let response = movie.dataValues.characters?.map(m => m.name)
+            let eliminados = []
+
+            for(let i = 0; i<response.length;i++){
+                if(!characters.includes(response[i])){
+                    eliminados.push(response[i])
+                }
+            }
+
+            let characterDelete = await Character.findAll({
+                where:{name:eliminados}
+            })
+
+            const pending_promises_array = characterDelete.map(e => movie.removeCharacter(e))
+            await Promise.all(pending_promises_array)
+
+            let characterDb = await Character.findAll({
+                where:{name:characters}
+            })
+
+            await movie.addCharacter(characterDb)
+        }
 
         await movie.update(condition)
         return res.send('Pelicula actualizado')

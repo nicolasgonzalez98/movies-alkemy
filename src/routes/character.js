@@ -75,10 +75,18 @@ router.delete('/delete/:id', async(req, res) => {
 router.put('/edit/:id', async(req, res) => {
     let { id } = req.params
     let condition = {}
-    let { name, image, age, weight, history } = req.body
+    let { name, image, age, weight, history, movies } = req.body
 
     try {
-        let character = await Character.findByPk(id)
+        let character = await Character.findByPk(id, {
+            include:{
+                model: Movie,
+                attributes: ['title'],
+                through: {
+                    attributes: []
+                }
+            }
+        })
         if(!character)return res.send('Ese personaje no existe')
 
         if(name)condition.name = name
@@ -86,6 +94,32 @@ router.put('/edit/:id', async(req, res) => {
         if(age)condition.age = age
         if(weight)condition.weight = weight
         if(history)condition.history = history
+        if(movies){
+           let response = character.dataValues.movies?.map(m => m.title)
+           let eliminados = []
+
+           for(let i = 0; i<response.length;i++){
+                if(!movies.includes(response[i])){
+                    eliminados.push(response[i])
+                }
+            }
+            
+
+            let movieDelete = await Movie.findAll({
+                where:{title:eliminados}
+            })
+
+            
+
+            const pending_promises_array = movieDelete.map(e => character.removeMovie(e))
+            await Promise.all(pending_promises_array)
+
+            let movieDb = await Movie.findAll({
+                where:{title:movies}
+            })
+
+            await character.addMovie(movieDb)
+        }
 
         await character.update(condition)
         return res.send('Personaje actualizado')
