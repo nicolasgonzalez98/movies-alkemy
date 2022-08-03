@@ -1,5 +1,9 @@
 const { Router } = require('express');
 const { User } = require('../db')
+const jwt = require('jsonwebtoken')
+const keys = require('../../settings/keys')
+
+
 
 const router = Router()
 
@@ -61,10 +65,20 @@ router.post('/login', async(req, res) => {
         if(!findUser){
             return res.send('El usuario no existe!')
         }else if(findUser.password !== password){
-            console.log('hola')
             return res.send('La contraseña no coincide.')
         }else{
-            res.send('Has iniciado sesión!')
+            
+            const payload = {
+                check:true
+            }
+            const token = await jwt.sign(payload, keys.key,{
+                expiresIn: '7d'
+            })
+
+            res.send({
+                message: 'Has iniciado sesion!',
+                token: token
+            })
         }
 
     } catch (error) {
