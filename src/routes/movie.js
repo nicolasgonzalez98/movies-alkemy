@@ -66,7 +66,7 @@ router.get('/details/:id', async(req, res) => {
 router.post('/create', async (req, res) => {
     let { title, image, date_of_creation, rating } = req.body
 
-    if(!title || !image){
+    if(!title || !image || !date_of_creation){
         return res.send('Faltan datos obligatorios')
     }
 
