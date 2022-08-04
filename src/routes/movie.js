@@ -1,15 +1,40 @@
 const { Router } = require('express')
-const { Character, Movie } = require('../db')
+const { Character, Movie, Genre } = require('../db')
 const router = Router()
+const { Op } = require('sequelize')
 
 router.get('/', async(req, res) => {
+    let { name, genre, order } = req.query
+    
     
 
+    let condition = {}
+    let attributes = ['image', 'title', 'date_of_creation']
+    let where = {}
+    let include = {}
+
     try {
+        if(name)where.title = { [Op.iLike]: `%${name}%` }
+        if(genre){
+            include.model = Genre
+            include.attributes = []
+            include.through = {attributes: []}
+            include.where = {id:genre}
+            condition.include = include
+        }
+        let order_filter
+        if(order){
+            if(!(order.toLowerCase() === 'asc'|| order.toLowerCase() === 'desc'))return res.send('Ingreseste un tipo de orden invalido')
+            order_filter = [["date_of_creation", order.toUpperCase()]]
+            condition.order = order_filter
+        }
+
+
+        condition.where = where
+        condition.attributes = attributes
         
-        let movies = await Movie.findAll({
-            attributes: ['image', 'title', 'date_of_creation']
-        })
+        
+        let movies = await Movie.findAll(condition)
     
         return res.send(movies)
     } catch (error) {

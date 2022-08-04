@@ -1,7 +1,10 @@
 const { Router } = require('express');
+require('dotenv').config();
 const { User } = require('../db')
 const jwt = require('jsonwebtoken')
 const keys = require('../../settings/keys')
+const sgMail = require('@sendgrid/mail')
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 
 
@@ -34,6 +37,23 @@ router.post('/register', async (req, res) => {
             let user = await User.create({
                 name: username,
                 password: password
+            })
+
+            const msg = {
+                to: user.name, // Change to your recipient
+                from: user.name, // Change to your verified sender
+                subject: 'Bienvenido!',
+                text: 'Bienvenido a AlkemyMovies',
+                html: '<strong>Bienvenido a AlkemyMovies</strong>',
+              }
+
+            sgMail
+            .send(msg)
+            .then(() => {
+                console.log('Email sent')
+            })
+            .catch((error) => {
+                console.error(error)
             })
 
             return res.send(user)

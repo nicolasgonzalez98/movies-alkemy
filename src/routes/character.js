@@ -119,10 +119,10 @@ router.put('/edit/:id', async(req, res) => {
         if(weight)condition.weight = weight
         if(history)condition.history = history
         if(movies){
-           let response = character.dataValues.movies?.map(m => m.title)
-           let eliminados = []
+            let response = character.dataValues.movies?.map(m => m.title)
+            let eliminados = []
 
-           for(let i = 0; i<response.length;i++){
+            for(let i = 0; i<response.length;i++){
                 if(!movies.includes(response[i])){
                     eliminados.push(response[i])
                 }
