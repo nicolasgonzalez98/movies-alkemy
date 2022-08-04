@@ -3,11 +3,18 @@ const { Character, Movie } = require('../db')
 const router = Router()
 
 router.get('/', async(req, res) => {
-    let movies = await Movie.findAll({
-        attributes: ['image', 'title', 'date_of_creation']
-    })
+    
 
-    return res.send(movies)
+    try {
+        
+        let movies = await Movie.findAll({
+            attributes: ['image', 'title', 'date_of_creation']
+        })
+    
+        return res.send(movies)
+    } catch (error) {
+        return res.send(error)
+    }
 })
 
 router.get('/details/:id', async(req, res) => {

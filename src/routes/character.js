@@ -1,14 +1,38 @@
 const { Router } = require('express');
 const { Character, Movie } = require('../db')
+const { Op } = require('sequelize')
 
 const router = Router()
 
 router.get('/', async(req, res) => {
-    let characters = await Character.findAll({
-        attributes: ['image', 'name']
-    })
+    let { name, age, movies } = req.query
 
-    return res.send(characters)
+    let condition = {}
+    let attributes = ['image', 'name']
+    let where = {}
+    let include = {}
+    
+
+    try {
+        if(name)where.name = { [Op.iLike]: `%${name}%` }
+        if(age)where.age = age
+        if(movies){
+            include.model = Movie
+            include.attributes = []
+            include.through = {attributes: []}
+            include.where = {id:movies}
+            condition.include = include
+            
+        }
+        condition.attributes = attributes
+        condition.where = where
+        
+        let characters = await Character.findAll(condition)
+    
+        return res.send(characters)
+    } catch (error) {
+        return res.send(error)
+    }
 })
 
 router.get('/details/:id', async(req, res) => {
