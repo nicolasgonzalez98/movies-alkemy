@@ -68,7 +68,7 @@ router.post('/create', async (req, res) => {
 
     if(rating < 1 || rating > 5)return res.send('Ingresaste un ranking invalido')
 
-    if(!title || !image ){
+    if(!title || !image || !date_of_creation){
         return res.send('Faltan datos obligatorios')
     }
 
