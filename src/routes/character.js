@@ -58,6 +58,9 @@ router.get('/details/:id', async(req, res) => {
 router.post('/create', async (req, res) => {
     let { name, image, age, weight, history} = req.body
 
+    if(weight < 0)return res.send('Ingresaste un peso erroneo.')
+    if(age < 0 || age > 99)return res.send('Ingresaste una edad invalidad')
+
     if(!name || !image){
         return res.send('Faltan datos obligatorios')
     }
@@ -101,6 +104,9 @@ router.put('/edit/:id', async(req, res) => {
     let condition = {}
     let { name, image, age, weight, history, movies } = req.body
 
+    if(weight < 0)return res.send('Ingresaste un peso erroneo.')
+    if(age < 0 || age > 99)return res.send('Ingresaste una edad invalidad')
+
     try {
         let character = await Character.findByPk(id, {
             include:{
@@ -138,9 +144,13 @@ router.put('/edit/:id', async(req, res) => {
             const pending_promises_array = movieDelete.map(e => character.removeMovie(e))
             await Promise.all(pending_promises_array)
 
+            movieDelete.map(e => e.removeCharacter(character))
+
             let movieDb = await Movie.findAll({
                 where:{title:movies}
             })
+
+            movieDb.map(e => e.addCharacter(character))
 
             await character.addMovie(movieDb)
         }
